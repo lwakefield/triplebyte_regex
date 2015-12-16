@@ -6,6 +6,7 @@ class Query(object):
         self.raw = ''
         self.queries = []
         self.brackets = None
+        self.modifiers = ''
 
     def match(self, text, index=0):
         matches = []
@@ -32,3 +33,10 @@ class Query(object):
                 else: return None
         return Match.join_matches(matches)
 
+class OrQuery(object):
+
+    def match(self, text, index=0):
+        query = self.queries[0]
+        if text[index] in query:
+            return Match(index, text[index])
+        return None

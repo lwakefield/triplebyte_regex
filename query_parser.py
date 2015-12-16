@@ -1,4 +1,4 @@
-from query import Query
+from query import *
 
 class QueryParser(object):
 
@@ -9,6 +9,11 @@ class QueryParser(object):
         self.query = None
 
     def run(self):
+        if self.get_outer_brackets(self.raw) == '[]':
+            query = OrQuery()
+            query.queries = [self.strip_outer_brackets(self.raw)]
+            return query
+
         query = Query()
         query.brackets = self.get_outer_brackets(self.raw)
         self.raw = self.strip_outer_brackets(self.raw)
