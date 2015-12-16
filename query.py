@@ -41,22 +41,21 @@ class Query(object):
 
     def match_all_sub_queries(self, text, index=0):
         matches = []
-        for query in self.queries:
+        for i, query in enumerate(self.queries):
+            match = None
             if type(query) is str:
                 found_index = text.find(query, index)
-                # first query match or consecutive query match
-                if (index == 0 and found_index != -1) or (index == found_index):
-                    matches.append(Match(found_index, query))
-                    index = found_index + len(query)
-                else: return None
+                match = Match(found_index, query)
             else:
                 match = query.match(text, index)
                 if match is None: return None
-
-                if index == 0 or (index == match.index):
-                    matches.append(match)
-                    index = match.index + len(match.text)
-                else: return None
+    
+            # first query match or consecutive query match
+            if index == 0 or index == match.index:
+                index = match.index + len(match.text)
+                matches.append(match)
+            else:
+                return None
         return Match.join_matches(matches)
 
 class SetQuery(Query):
