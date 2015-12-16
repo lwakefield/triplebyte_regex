@@ -1,7 +1,7 @@
 import unittest 
 from unittest import TestCase
 
-from query_parser import QueryParser
+from query_parser import *
 from query import *
 
 class Tester(TestCase):
@@ -150,6 +150,47 @@ class Tester(TestCase):
         self.assertTrue(match.text == 'hello i am this')
         match = q.match('hello i am i am this')
         self.assertIsNone(match)
+
+    def test_set_parser(self):
+        q = SetQueryParser.parse('basic')
+        self.assertTrue(q.queries == ['basic'])
+
+        q = SetQueryParser.parse('a-z')
+        self.assertTrue(q.queries == ['abcdefghijklmnopqrstuvwxyz'])
+
+        q = SetQueryParser.parse('j-l')
+        self.assertTrue(q.queries == ['jkl'])
+
+        q = SetQueryParser.parse('J-L')
+        self.assertTrue(q.queries == ['JKL'])
+
+        q = SetQueryParser.parse('0-9')
+        self.assertTrue(q.queries == ['0123456789'])
+
+        q = SetQueryParser.parse('4-6')
+        self.assertTrue(q.queries == ['456'])
+
+        q = SetQueryParser.parse('0-9a-z')
+        self.assertTrue(q.queries == ['0123456789abcdefghijklmnopqrstuvwxyz'])
+
+        q = SetQueryParser.parse('0-9a-z')
+        self.assertTrue(q.queries == ['0123456789abcdefghijklmnopqrstuvwxyz'])
+
+        q = SetQueryParser.parse('0-3a-cJ-L')
+        self.assertTrue(q.queries == ['0123abcJKL'])
+
+    def test_complex_queries(self):
+        q = QueryParser.parse('[a-zA-Z0-9]*@[a-z]*.[a-z]*')
+        match = q.match('lawrence112@testemail.com')
+        self.assertIsNotNone(match)
+        self.assertTrue(match.index == 0)
+        self.assertTrue(match.text == 'lawrence112@testemail.com')
+        match = q.match('not a valid email address @.com')
+        self.assertIsNone(match)
+        # match = q.match('there is an email@address.com in this string')
+        # self.assertIsNotNone(match)
+        # self.assertTrue(match.text == 'email@address.com')
+        # self.assertTrue(match.index == 12)
 
 if __name__ == '__main__':
     unittest.main()

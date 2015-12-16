@@ -11,10 +11,7 @@ class QueryParser(object):
 
     def run(self):
         if self.get_outer_brackets(self.raw) == '[]':
-            query = SetQuery()
-            query.queries = [self.strip_outer_brackets(self.raw)]
-            query.suffix = self.suffix
-            return query
+            return SetQueryParser.parse(self.strip_outer_brackets(self.raw), self.suffix)
 
         query = Query()
         query.brackets = self.get_outer_brackets(self.raw)
@@ -95,4 +92,42 @@ class QueryParser(object):
         parser = QueryParser(raw)
         parser.suffix = suffix
         return parser.run()
+
+class SetQueryParser(QueryParser):
+
+    def __init__(self, raw):
+        QueryParser.__init__(self, raw)
+        self.query_set = ''
+
+    def run(self):
+        while self.raw and self.extract_next_range():
+            pass
+
+        self.query_set += self.raw
+
+        query = SetQuery()
+        query.queries = [self.query_set]
+        query.suffix = self.suffix
+        return query
+
+    def extract_next_range(self):
+        if '-' in self.raw:
+            index = self.raw.find('-')
+            before = self.raw[index - 1]
+            after = self.raw[index + 1]
+            if ((before.islower() and after.islower()) or
+                    (before.isupper() and after.isupper()) or
+                    (before.isdigit() and after.isdigit())):
+                set_range = ''.join(map(chr, range(ord(before), ord(after)+1)))
+                self.query_set += set_range
+                self.raw = self.raw[0:index-1] + self.raw[index+2:]
+                return self.query_set
+            else: raise Exception
+
+    @staticmethod
+    def parse(raw, suffix=''):
+        parser = SetQueryParser(raw)
+        parser.suffix = suffix
+        return parser.run()
+
 
