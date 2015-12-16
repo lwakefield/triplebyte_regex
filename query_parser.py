@@ -11,7 +11,7 @@ class QueryParser(object):
 
     def run(self):
         if self.get_outer_brackets(self.raw) == '[]':
-            query = OrQuery()
+            query = SetQuery()
             query.queries = [self.strip_outer_brackets(self.raw)]
             query.suffix = self.suffix
             return query

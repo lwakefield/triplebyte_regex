@@ -36,7 +36,7 @@ class Tester(TestCase):
         q = QueryParser.parse('lor[em ip]sum')
         self.assertTrue(len(q.queries) == 3)
         self.assertTrue(q.queries[0] == 'lor')
-        self.assertTrue(type(q.queries[1]) == OrQuery)
+        self.assertTrue(type(q.queries[1]) == SetQuery)
         self.assertTrue(q.queries[1].queries[0] == 'em ip')
         self.assertTrue(q.queries[2] == 'sum')
 
@@ -61,8 +61,8 @@ class Tester(TestCase):
         match = q.match('lorem ipsum')
         self.assertIsNone(match)
 
-    def test_basic_or_query_match(self):
-        q = OrQuery()
+    def test_basic_set_query_match(self):
+        q = SetQuery()
         q.queries = ['mp']
 
         match = q.match('m')
@@ -78,7 +78,7 @@ class Tester(TestCase):
         match = q.match('q')
         self.assertIsNone(match)
 
-    def test_embedded_or_query_match(self):
+    def test_embedded_set_query_match(self):
         q = QueryParser.parse('em i[mp]sum')
 
         match = q.match('lorem ipsum')

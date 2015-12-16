@@ -59,7 +59,7 @@ class Query(object):
                 else: return None
         return Match.join_matches(matches)
 
-class OrQuery(Query):
+class SetQuery(Query):
 
     def match(self, text, index=0):
         query = self.queries[0]
@@ -98,6 +98,5 @@ class OrQuery(Query):
                 match_text += val
             else: 
                 break
-
         return Match(index, match_text)
 
