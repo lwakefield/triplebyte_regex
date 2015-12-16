@@ -13,3 +13,7 @@
     - {n, }
     - {n, m}
 - boolean
+
+- modifiers
+    - DOTALL
+    - MULTILINE

@@ -6,7 +6,6 @@ class QueryParser(object):
         self.raw = raw
         self.index = 0
         self.brackets = []
-        self.query = None
 
     def run(self):
         if self.get_outer_brackets(self.raw) == '[]':
@@ -29,6 +28,17 @@ class QueryParser(object):
 
         return query
 
+    def get_suffix(self):
+        suffix = ''
+        while self.index < len(self.raw):
+            val = self.raw[self.index]
+            if val in '+*?':
+                suffix += val
+            else:
+                return suffix
+            self.index += 1
+        return suffix
+
     def get_next_sub_query(self):
         this_query = ''
         while self.index < len(self.raw):
@@ -38,13 +48,11 @@ class QueryParser(object):
                 return this_query
             elif self.is_opening_bracket(val) and (this_query == '' or self.brackets):
                 self.brackets.append({'index': self.index, 'val': val})
-            elif self.is_matching_bracket(val) and len(self.brackets) == 1:
-                start_index = self.brackets.pop()['index']
-                end_index = self.index
-                self.index += 1
-                return self.raw[start_index:end_index+1]
-            elif self.is_matching_bracket(val) and len(self.brackets) > 1:
+            elif self.is_matching_bracket(val):
                 self.brackets.pop()
+                if len(self.brackets) == 0:
+                    self.index += 1
+                    return this_query + val + self.get_suffix()
             this_query += val
             self.index += 1
         return this_query
