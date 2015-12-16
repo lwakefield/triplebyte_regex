@@ -6,56 +6,60 @@ class QueryParser(object):
         self.raw = raw
         self.index = 0
         self.brackets = []
+        self.query = ''
+        self.suffix = ''
 
     def run(self):
         if self.get_outer_brackets(self.raw) == '[]':
             query = OrQuery()
             query.queries = [self.strip_outer_brackets(self.raw)]
+            query.suffix = self.suffix
             return query
 
         query = Query()
         query.brackets = self.get_outer_brackets(self.raw)
+        query.suffix = self.suffix
         self.raw = self.strip_outer_brackets(self.raw)
         query.raw = self.raw
 
-        sub_query = self.get_next_sub_query()
-        while sub_query:
-            if self.has_outer_brackets(sub_query):
-                query.queries.append(QueryParser.parse(sub_query))
+        self.get_next_sub_query()
+        while self.query:
+            if self.has_outer_brackets(self.query):
+                query.queries.append(QueryParser.parse(self.query, self.suffix))
             else: 
-                query.queries.append(sub_query)
-            sub_query = self.get_next_sub_query()
+                query.queries.append(self.query)
+            self.get_next_sub_query()
 
         return query
 
-    def get_suffix(self):
-        suffix = ''
-        while self.index < len(self.raw):
-            val = self.raw[self.index]
-            if val in '+*?':
-                suffix += val
-            else:
-                return suffix
-            self.index += 1
-        return suffix
-
     def get_next_sub_query(self):
-        this_query = ''
+        self.query = ''
+        self.suffix = ''
         while self.index < len(self.raw):
             val = self.raw[self.index]
-            if self.is_opening_bracket(val) and not self.brackets and this_query != '':
-                self.query = this_query
-                return this_query
-            elif self.is_opening_bracket(val) and (this_query == '' or self.brackets):
+            if self.is_opening_bracket(val) and not self.brackets and self.query != '':
+                return 
+            elif self.is_opening_bracket(val) and (self.query == '' or self.brackets):
                 self.brackets.append({'index': self.index, 'val': val})
             elif self.is_matching_bracket(val):
                 self.brackets.pop()
                 if len(self.brackets) == 0:
                     self.index += 1
-                    return this_query + val + self.get_suffix()
-            this_query += val
+                    self.query += val
+                    self.get_next_suffix()
+                    return
+            self.query += val
             self.index += 1
-        return this_query
+
+    def get_next_suffix(self):
+        self.suffix = ''
+        while self.index < len(self.raw):
+            val = self.raw[self.index]
+            if val in '+*?':
+                self.suffix += val
+            else:
+                return
+            self.index += 1
 
     def is_matching_bracket(self, s):
         if len(self.brackets) == 0: 
@@ -87,7 +91,8 @@ class QueryParser(object):
         return s
 
     @staticmethod
-    def parse(raw):
+    def parse(raw, suffix=''):
         parser = QueryParser(raw)
+        parser.suffix = suffix
         return parser.run()
 

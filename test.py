@@ -94,6 +94,12 @@ class Tester(TestCase):
         match = q.match('lorem ixsum')
         self.assertIsNone(match)
 
+    def test_basic_suffix(self):
+        q = QueryParser.parse('[am]+')
+        self.assertIsNotNone(q)
+        self.assertTrue(q.queries[0].queries == ['am'])
+        self.assertTrue(q.queries[0].suffix == '+')
+
 if __name__ == '__main__':
     unittest.main()
 
