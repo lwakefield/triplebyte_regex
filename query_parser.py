@@ -1,4 +1,5 @@
 from query import *
+from util import *
 
 class QueryParser(object):
 
@@ -10,13 +11,10 @@ class QueryParser(object):
         self.suffix = ''
 
     def run(self):
-        suffix = self.get_suffix(self.raw)
-        brackets = self.get_outer_brackets(self.raw)
+        suffix = get_suffix(self.raw)
+        brackets = get_outer_brackets(self.raw)
 
-        if suffix and brackets:
-            self.raw = self.strip_suffix(self.raw)
-        if brackets:
-            self.raw = self.strip_outer_brackets(self.raw)
+        self.raw = strip(self.raw)
 
         if brackets == '[]':
             query = SetQueryParser.parse(self.raw)
@@ -24,12 +22,11 @@ class QueryParser(object):
             return query
 
         query = Query()
-        if suffix and brackets:
-            query.suffix = suffix
+        query.suffix = suffix
         query.raw = self.raw
 
         while self.get_next_sub_query():
-            if self.has_outer_brackets(self.query):
+            if get_outer_brackets(self.query):
                 sub_query = QueryParser.parse(self.query)
                 query.queries.append(sub_query)
             else: 
@@ -42,9 +39,9 @@ class QueryParser(object):
         self.suffix = ''
         while self.index < len(self.raw):
             val = self.raw[self.index]
-            if self.is_opening_bracket(val) and not self.brackets and self.query != '':
+            if is_opening_bracket(val) and not self.brackets and self.query != '':
                 return True
-            elif self.is_opening_bracket(val) and (self.query == '' or self.brackets):
+            elif is_opening_bracket(val) and (self.query == '' or self.brackets):
                 self.brackets.append({'index': self.index, 'val': val})
             elif self.is_matching_bracket(val):
                 self.brackets.pop()
@@ -71,52 +68,11 @@ class QueryParser(object):
         if len(self.brackets) == 0: 
             return False
         last_bracket = self.brackets[-1]['val']
-        if self.is_closing_bracket(s):
+        if is_closing_bracket(s):
             if last_bracket == '[' and s != ']': raise Exception
             elif last_bracket == '(' and s != ')': raise Exception
             return True
         return False
-
-    def has_suffix(self, s):
-        suffix = self.get_suffix(s)
-        brackets = self.get_outer_brackets(s)
-        return bool(suffix) and bool(brackets)
-
-    def is_opening_bracket(self, s):
-        return s in '(['
-
-    def is_closing_bracket(self, s):
-        return s in ')]'
-
-    def has_outer_brackets(self, s):
-        s = self.strip_suffix(s)
-        return (s[0] == '[' and s[-1] == ']') or (s[0] == '(' and s[-1] == ')')
-
-    def get_outer_brackets(self, s):
-        s = self.strip_suffix(s)
-        if s[0] == '[' and s[-1] == ']': return '[]'
-        elif s[0] == '(' and s[-1] == ')': return '()'
-        return None
-
-    def strip_outer_brackets(self, s):
-        if self.has_outer_brackets(s) and len(s) >= 2:
-            return s[1:-1]
-        return s
-
-    def strip_suffix(self, s):
-        suffix = self.get_suffix(s)
-        if len(suffix):
-            return s[:-len(suffix)]
-        return s
-
-    def get_suffix(self, s):
-        suffix = ''
-        for c in s[::-1]:
-            if c in '+*?':
-                suffix += c
-            else:
-                break
-        return suffix[::-1]
 
     @staticmethod
     def parse(raw, suffix=''):
