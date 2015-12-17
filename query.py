@@ -52,10 +52,7 @@ class Query(object):
                 if match is None or match.index == -1: return None
 
                 if matches == [] or index == match.index:
-                    # if len(match.text):
                     index = match.index + len(match.text)
-                    # else:
-                        # index += 1
                     matches.append(match)
                 elif index != 0 and index != match.index:
                     curr_match = Match.join_matches(matches)
