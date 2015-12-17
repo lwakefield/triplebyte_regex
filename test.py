@@ -6,7 +6,7 @@ from query import *
 
 class Tester(TestCase):
 
-    def test_basic_find(self):
+    def test_basic_match(self):
         q = QueryParser.parse('sum do')
         match = q.match('lorem imsum dolor sit amet')
         self.assertIsNotNone(match)

@@ -8,6 +8,10 @@ class Query(object):
         self.suffix = ''
 
     def match(self, text, index=0):
+        """
+        If a match exists for the query in text, then a Match object will
+            be returned. Otherwise, None will be returned.
+        """
         if '*' in self.suffix:
             return self.match_zero_or_more(text, index)
         elif '+' in self.suffix:
@@ -23,12 +27,21 @@ class Query(object):
         return Match(index, '')
 
     def match_one_or_more(self, text, index=0):
+        """
+        Is a special case of match_zero_or_more, so it checks that there is
+            at least one match, then passes to the match_zero_or_more function.
+        If there is not at least one match, then None is returned
+        """
         match = self.match_all_sub_queries(text, index)
         if match:
             return self.match_zero_or_more(text, index)
         return None
 
     def match_zero_or_more(self, text, index=0):
+        """
+        Accumulates zero or more matches into a single Match object.
+        This will always return a Match, (0 or 1) = true
+        """
         accumulated_match = Match(index, '')
         while True:
             start_index = index + len(accumulated_match.text)
@@ -39,6 +52,18 @@ class Query(object):
         return accumulated_match
 
     def match_all_sub_queries(self, text, index=0):
+        """
+            Recursively matches all subqueries in this Query.
+            This function searches left to right for matches to subqueries.
+            For each subquery, if a match is found, then:
+                if it is adjacent to the last match or it is the first match
+                    for this query, we add it to the matches array
+                otherwise, we empty the matches array and start searching from
+                    the first subquery again
+            If at any point no match for a subquery is found, we return None
+            Once we have found matches for all subqueries, we join all matches
+                into a single Match object, which is then returned.
+        """
         while index < len(text):
             matches = []
             for i, query in enumerate(self.queries):

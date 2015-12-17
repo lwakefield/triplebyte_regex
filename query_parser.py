@@ -2,15 +2,29 @@ from query import *
 from util import *
 
 class QueryParser(object):
+    """
+        The QueryParser acts as an iterator, iterating through the raw
+            query string building up a query object.
+        When a new QueryParser is run, it will strip brackets and suffix
+            symbols from the raw query string. If the query string is surrounded
+            by square brackets (base case), it is passed to a SetQueryParser.
+        The QueryParser maintains a stack of brackets to determine when
+            a subquery is found. When a subquery is found it is recursively
+            parsed and added to the query tree.
+    """
 
     def __init__(self, raw):
         self.raw = raw
         self.index = 0
         self.brackets = []
         self.query = ''
-        self.suffix = ''
 
     def run(self):
+        """
+            Runs the parser on the raw query string, returning a query object 
+            The parser will recursively add subqueries to the query object
+                such that we will end up with a query tree
+        """
         suffix = get_suffix(self.raw)
         brackets = get_outer_brackets(self.raw)
 
@@ -35,6 +49,10 @@ class QueryParser(object):
         return query
 
     def get_next_sub_query(self):
+        """
+        Finds and sets self.query to the next sub query.
+        Returns true if a sub query has been found, false otherwise.
+        """
         self.query = ''
         self.suffix = ''
         while self.index < len(self.raw):
@@ -55,6 +73,11 @@ class QueryParser(object):
         return len(self.query) > 0
 
     def get_next_suffix(self):
+        """
+        Called from get_next_sub_query, this checks if there is a suffix
+        after the current query.
+        If there is a suffix, then it will be added to the current query.
+        """
         self.suffix = ''
         while self.index < len(self.raw):
             val = self.raw[self.index]
@@ -86,6 +109,12 @@ class SetQueryParser(QueryParser):
         self.query_set = ''
 
     def run(self):
+        """
+            Runs the parser on the raw query string, returning a query object 
+            The parser adds all ranges to the query set, then adds any extra
+                values to the query_set
+                ex. a-cD-G13579 -> query_set = abcDEFG13579
+        """
         while self.raw and self.extract_next_range():
             pass
 
@@ -96,6 +125,11 @@ class SetQueryParser(QueryParser):
         return query
 
     def extract_next_range(self):
+        """
+        Extracts the next available range in the query string.
+        The range is then parsed to its literal form and added to the query set
+            ex. a-f -> abcdef, 0-9 -> 0123456789
+        """
         if '-' in self.raw:
             index = self.raw.find('-')
             before = self.raw[index - 1]
