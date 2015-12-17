@@ -92,6 +92,12 @@ class Query(object):
 
 class SetQuery(Query):
 
+    """
+    The SetQuery class will match any character in the query attribute.
+    The match function will determine if any quantifiers need to be added
+        to the query.
+    """
+
     def match(self, text, index=0):
         query = self.queries[0]
         for i in range(index, len(text)):
