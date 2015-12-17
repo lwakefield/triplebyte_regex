@@ -40,23 +40,33 @@ class Query(object):
         return accumulated_match
 
     def match_all_sub_queries(self, text, index=0):
-        matches = []
-        for i, query in enumerate(self.queries):
-            match = None
-            if type(query) is str:
-                found_index = text.find(query, index)
-                match = Match(found_index, query)
-            else:
-                match = query.match(text, index)
+        while index < len(text):
+            matches = []
+            for i, query in enumerate(self.queries):
+                match = None
+                if type(query) is str:
+                    found_index = text.find(query, index)
+                    match = Match(found_index, query)
+                else:
+                    match = query.match(text, index)
                 if match is None: return None
-    
-            # first query match or consecutive query match
-            if index == 0 or index == match.index:
-                index = match.index + len(match.text)
-                matches.append(match)
+        
+                # first query match or consecutive query match
+                if match.index == -1:
+                    return None
+                elif matches == [] or index == match.index:
+                    if len(match.text):
+                        index = match.index + len(match.text)
+                    else:
+                        index += 1
+                    matches.append(match)
+                elif index != 0 and index != match.index:
+                    break
+                else:
+                    return None
             else:
-                return None
-        return Match.join_matches(matches)
+                return Match.join_matches(matches)
+        return None
 
 class SetQuery(Query):
 

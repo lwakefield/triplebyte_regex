@@ -187,10 +187,10 @@ class Tester(TestCase):
         self.assertTrue(match.text == 'lawrence112@testemail.com')
         match = q.match('not a valid email address @.com')
         self.assertIsNone(match)
-        # match = q.match('there is an email@address.com in this string')
-        # self.assertIsNotNone(match)
-        # self.assertTrue(match.text == 'email@address.com')
-        # self.assertTrue(match.index == 12)
+        match = q.match('there is an email@address.com in this string')
+        self.assertIsNotNone(match)
+        self.assertTrue(match.text == 'email@address.com')
+        self.assertTrue(match.index == 12)
 
 if __name__ == '__main__':
     unittest.main()
