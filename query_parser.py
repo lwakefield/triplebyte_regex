@@ -10,25 +10,30 @@ class QueryParser(object):
         self.suffix = ''
 
     def run(self):
-        suffix = self.strip_suffix(self.raw)
-        brackets = self.strip_outer_brackets()
+        suffix = self.get_suffix(self.raw)
+        brackets = self.get_outer_brackets(self.raw)
+
+        if suffix and brackets:
+            self.raw = self.strip_suffix(self.raw)
+        if brackets:
+            self.raw = self.strip_outer_brackets(self.raw)
 
         if brackets == '[]':
             query = SetQueryParser.parse(self.raw)
-            query.suffix = self.suffix
+            query.suffix = suffix
             return query
 
         query = Query()
-        query.suffix = self.suffix
+        if suffix and brackets:
+            query.suffix = suffix
         query.raw = self.raw
 
-        self.get_next_sub_query()
-        while self.query:
+        while self.get_next_sub_query():
             if self.has_outer_brackets(self.query):
-                query.queries.append(QueryParser.parse(self.query, self.suffix))
+                sub_query = QueryParser.parse(self.query)
+                query.queries.append(sub_query)
             else: 
                 query.queries.append(self.query)
-            self.get_next_sub_query()
 
         return query
 
@@ -38,7 +43,7 @@ class QueryParser(object):
         while self.index < len(self.raw):
             val = self.raw[self.index]
             if self.is_opening_bracket(val) and not self.brackets and self.query != '':
-                return 
+                return True
             elif self.is_opening_bracket(val) and (self.query == '' or self.brackets):
                 self.brackets.append({'index': self.index, 'val': val})
             elif self.is_matching_bracket(val):
@@ -47,16 +52,17 @@ class QueryParser(object):
                     self.index += 1
                     self.query += val
                     self.get_next_suffix()
-                    return
+                    return True
             self.query += val
             self.index += 1
+        return len(self.query) > 0
 
     def get_next_suffix(self):
         self.suffix = ''
         while self.index < len(self.raw):
             val = self.raw[self.index]
             if val in '+*?':
-                self.suffix += val
+                self.query += val
             else:
                 return
             self.index += 1
@@ -71,6 +77,11 @@ class QueryParser(object):
             return True
         return False
 
+    def has_suffix(self, s):
+        suffix = self.get_suffix(s)
+        brackets = self.get_outer_brackets(s)
+        return bool(suffix) and bool(brackets)
+
     def is_opening_bracket(self, s):
         return s in '(['
 
@@ -78,27 +89,34 @@ class QueryParser(object):
         return s in ')]'
 
     def has_outer_brackets(self, s):
+        s = self.strip_suffix(s)
         return (s[0] == '[' and s[-1] == ']') or (s[0] == '(' and s[-1] == ')')
 
     def get_outer_brackets(self, s):
+        s = self.strip_suffix(s)
         if s[0] == '[' and s[-1] == ']': return '[]'
         elif s[0] == '(' and s[-1] == ')': return '()'
         return None
 
-    def strip_outer_brackets(self):
-        brackets = self.get_outer_brackets(self.raw)
-        if self.has_outer_brackets(self.raw) and len(self.raw) >= 2:
-            self.raw = self.raw[1:-1]
-        return brackets
+    def strip_outer_brackets(self, s):
+        if self.has_outer_brackets(s) and len(s) >= 2:
+            return s[1:-1]
+        return s
 
     def strip_suffix(self, s):
+        suffix = self.get_suffix(s)
+        if len(suffix):
+            return s[:-len(suffix)]
+        return s
+
+    def get_suffix(self, s):
         suffix = ''
-        for c in s:
+        for c in s[::-1]:
             if c in '+*?':
                 suffix += c
             else:
                 break
-        return s[:-len(suffix)]
+        return suffix[::-1]
 
     @staticmethod
     def parse(raw, suffix=''):
@@ -120,7 +138,6 @@ class SetQueryParser(QueryParser):
 
         query = SetQuery()
         query.queries = [self.query_set]
-        query.suffix = self.suffix
         return query
 
     def extract_next_range(self):
