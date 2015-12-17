@@ -5,7 +5,6 @@ class Query(object):
     def __init__(self):
         self.raw = ''
         self.queries = []
-        self.brackets = None
         self.suffix = ''
 
     def match(self, text, index=0):
@@ -49,18 +48,19 @@ class Query(object):
                     match = Match(found_index, query)
                 else:
                     match = query.match(text, index)
-                if match is None: return None
-        
-                # first query match or consecutive query match
-                if match.index == -1:
-                    return None
-                elif matches == [] or index == match.index:
-                    if len(match.text):
-                        index = match.index + len(match.text)
-                    else:
-                        index += 1
+
+                if match is None or match.index == -1: return None
+
+                if matches == [] or index == match.index:
+                    # if len(match.text):
+                    index = match.index + len(match.text)
+                    # else:
+                        # index += 1
                     matches.append(match)
                 elif index != 0 and index != match.index:
+                    curr_match = Match.join_matches(matches)
+                    if len(curr_match.text) == 0:
+                        index += 1
                     break
                 else:
                     return None

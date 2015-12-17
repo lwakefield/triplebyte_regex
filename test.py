@@ -30,7 +30,6 @@ class Tester(TestCase):
         self.assertTrue(len(q.queries) == 3)
         self.assertTrue(q.queries[0] == 'lor')
         self.assertTrue(q.queries[1].raw == 'em ip')
-        self.assertTrue(q.queries[1].brackets == '()')
         self.assertTrue(q.queries[2] == 'sum')
 
         q = QueryParser.parse('lor[em ip]sum')
@@ -180,12 +179,12 @@ class Tester(TestCase):
         self.assertTrue(q.queries == ['0123abcJKL'])
 
     def test_complex_queries(self):
-        q = QueryParser.parse('[a-zA-Z0-9]*@[a-z]*.[a-z]*')
+        q = QueryParser.parse('[a-zA-Z0-9]*@[a-z]*.com')
         match = q.match('lawrence112@testemail.com')
         self.assertIsNotNone(match)
         self.assertTrue(match.index == 0)
         self.assertTrue(match.text == 'lawrence112@testemail.com')
-        match = q.match('not a valid email address @.com')
+        match = q.match('not a valid email address @.notcom')
         self.assertIsNone(match)
         match = q.match('there is an email@address.com in this string')
         self.assertIsNotNone(match)

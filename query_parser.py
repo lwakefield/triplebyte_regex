@@ -14,7 +14,6 @@ class QueryParser(object):
             return SetQueryParser.parse(self.strip_outer_brackets(self.raw), self.suffix)
 
         query = Query()
-        query.brackets = self.get_outer_brackets(self.raw)
         query.suffix = self.suffix
         self.raw = self.strip_outer_brackets(self.raw)
         query.raw = self.raw
