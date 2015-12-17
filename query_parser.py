@@ -26,7 +26,7 @@ class QueryParser(object):
         query.raw = self.raw
 
         while self.get_next_sub_query():
-            if get_outer_brackets(self.query):
+            if is_sub_query(self.query):
                 sub_query = QueryParser.parse(self.query)
                 query.queries.append(sub_query)
             else: 
@@ -75,9 +75,8 @@ class QueryParser(object):
         return False
 
     @staticmethod
-    def parse(raw, suffix=''):
+    def parse(raw):
         parser = QueryParser(raw)
-        parser.suffix = suffix
         return parser.run()
 
 class SetQueryParser(QueryParser):
@@ -108,7 +107,8 @@ class SetQueryParser(QueryParser):
                 self.query_set += set_range
                 self.raw = self.raw[0:index-1] + self.raw[index+2:]
                 return self.query_set
-            else: raise Exception
+            else: 
+                raise Exception
 
     @staticmethod
     def parse(raw):

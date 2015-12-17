@@ -1,3 +1,6 @@
+def is_sub_query(s):
+    return bool(get_outer_brackets(s))
+
 def is_opening_bracket(s):
     return s in '(['
 
