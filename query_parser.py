@@ -42,7 +42,7 @@ class QueryParser(object):
             if is_opening_bracket(val) and not self.brackets and self.query != '':
                 return True
             elif is_opening_bracket(val) and (self.query == '' or self.brackets):
-                self.brackets.append({'index': self.index, 'val': val})
+                self.brackets.append(val)
             elif self.is_matching_bracket(val):
                 self.brackets.pop()
                 if len(self.brackets) == 0:
@@ -67,7 +67,7 @@ class QueryParser(object):
     def is_matching_bracket(self, s):
         if len(self.brackets) == 0: 
             return False
-        last_bracket = self.brackets[-1]['val']
+        last_bracket = self.brackets[-1]
         if is_closing_bracket(s):
             if last_bracket == '[' and s != ']': raise Exception
             elif last_bracket == '(' and s != ')': raise Exception
