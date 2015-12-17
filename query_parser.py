@@ -10,12 +10,14 @@ class QueryParser(object):
         self.suffix = ''
 
     def run(self):
-        if self.get_outer_brackets(self.raw) == '[]':
-            return SetQueryParser.parse(self.strip_outer_brackets(self.raw), self.suffix)
+        suffix = self.strip_suffix(self.raw)
+        brackets = self.strip_outer_brackets()
+
+        if brackets == '[]':
+            return SetQueryParser.parse(self.raw, self.suffix)
 
         query = Query()
         query.suffix = self.suffix
-        self.raw = self.strip_outer_brackets(self.raw)
         query.raw = self.raw
 
         self.get_next_sub_query()
@@ -81,10 +83,20 @@ class QueryParser(object):
         elif s[0] == '(' and s[-1] == ')': return '()'
         return None
 
-    def strip_outer_brackets(self, s):
-        if self.has_outer_brackets(s) and len(s) >= 2:
-            return s[1:-1]
-        return s
+    def strip_outer_brackets(self):
+        brackets = self.get_outer_brackets(self.raw)
+        if self.has_outer_brackets(self.raw) and len(self.raw) >= 2:
+            self.raw = self.raw[1:-1]
+        return brackets
+
+    def strip_suffix(self, s):
+        suffix = ''
+        for c in s:
+            if c in '+*?':
+                suffix += c
+            else:
+                break
+        return s[:-len(suffix)]
 
     @staticmethod
     def parse(raw, suffix=''):
