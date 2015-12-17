@@ -14,7 +14,9 @@ class QueryParser(object):
         brackets = self.strip_outer_brackets()
 
         if brackets == '[]':
-            return SetQueryParser.parse(self.raw, self.suffix)
+            query = SetQueryParser.parse(self.raw)
+            query.suffix = self.suffix
+            return query
 
         query = Query()
         query.suffix = self.suffix
@@ -136,9 +138,8 @@ class SetQueryParser(QueryParser):
             else: raise Exception
 
     @staticmethod
-    def parse(raw, suffix=''):
+    def parse(raw):
         parser = SetQueryParser(raw)
-        parser.suffix = suffix
         return parser.run()
 
 
